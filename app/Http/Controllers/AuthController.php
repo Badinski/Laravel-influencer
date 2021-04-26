@@ -9,6 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Hash;
 use App\User;
 use App\Http\Requests\RegisterRequest;
+
+use App\Http\Resources\UserResource;
+
 class AuthController extends Controller
 {
     public function login(Request $request)
@@ -22,10 +25,11 @@ class AuthController extends Controller
           since the framework will automatically hash the value before comparing 
           it to the hashed password in the database. If the 
         two hashed passwords match an authenticated session will be started for the user. */
-        dump($request->only('email', 'password'));
+        
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
-            dump($request->only('email', 'password'));
+            $scope = $request->input('scope');
+
             /*To issue a token, you may use the createToken method. 
             The createToken method returns a Laravel\Sanctum\NewAccessToken instance.
             
@@ -34,7 +38,14 @@ class AuthController extends Controller
             /*an API token is a unique identifier of an application requesting access to your service. 
             Your service would generate an API token for the application to use when requesting your service. 
             You can then match the token they provide to the one you store in order to authenticate. */
-            $token = $user->createToken('admin')->accessToken;
+            
+            if($user->isInfluencer() && $scope !== 'influencer'){
+                return response([
+                    'error' => 'Access denied!',
+                ], Response::HTTP_FORBIDDEN);
+            }
+            
+            $token = $user->createToken($scope, [$scope])->accessToken;
 
 
             /* authentication cookies are the most common method used by web servers to
@@ -70,10 +81,51 @@ class AuthController extends Controller
             $request->only('first_name', 'last_name', 'email')
             + [
                 'password' => Hash::make($request->input('password')),
-                'role_id' => 1,
+                'is_influencer' => 1
             ]
         );
 
         return response($user, 201);
+    }
+
+    public function user()
+    {
+      $user = \Auth::user();
+
+      $resource = new UserResource($user);
+      
+      if($user->is_influencer)
+      {
+          return $resource;
+      }
+
+      return $resource->additional([
+          'data' => [
+              'permissions' => $user->permissions(),
+          ],
+      ]);
+
+    }
+
+
+    public function updateInfo(UpdateInfoRequest $request)
+    {
+        $user = \Auth::user();
+
+        $user->update($request->only('first_name', 'last_name', 'email'));
+
+        return response(new UserResource($user), 201);
+    }
+
+ 
+    public function updatePassword(UpdatePasswordRequest $request)
+    {
+        $user = \Auth::user();
+
+        $user->update([
+            'password' => Hash::make($request->input('password')),
+        ]);
+
+        return response(new UserResource($user), 201);
     }
 }

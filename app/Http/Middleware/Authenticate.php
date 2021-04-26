@@ -1,5 +1,5 @@
 <?php
-use Closure;
+// use Closure;
 namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;

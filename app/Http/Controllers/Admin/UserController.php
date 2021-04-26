@@ -33,9 +33,14 @@ class UserController
 
 
     $user = User::create(
-      $request->only('first_name', 'last_name', 'email', 'role_id')
+      $request->only('first_name', 'last_name', 'email')
       + ['password' => Hash::make(1234)]
       );
+
+      UserRole::create([
+        'user_id' => $user->id,
+        'role_id' => $request->input('role_id'),
+      ]);
 
     return response(new UserResource($user), 201);
   }
@@ -48,7 +53,14 @@ class UserController
 
 
     /*If you need to retrieve a subset of the input data, you may use the only method*/ 
-    $user->update($request->only('first_name', 'last_name', 'email', 'role_id'));
+    $user->update($request->only('first_name', 'last_name', 'email'));
+
+    UserRole::where('user_id', $user->id)->delete();
+
+    UserRole::create([
+      'user_id' => $user->id,
+      'role_id' => $request->input('role_id'),
+    ]);
 
     return response(new UserResource($user),202);
 
@@ -58,39 +70,4 @@ class UserController
 
     return response(null,204);
   }
-
-
-    public function user()
-    {
-      $user = \Auth::user();
-
-      return (new UserResource($user))->additional([
-          'data' => [
-              'permissions' => $user->permissions(),
-          ],
-      ]);
-
-    }
-
-
-    public function updateInfo(UpdateInfoRequest $request)
-    {
-        $user = \Auth::user();
-
-        $user->update($request->only('first_name', 'last_name', 'email'));
-
-        return response(new UserResource($user), 201);
-    }
-
- 
-    public function updatePassword(UpdatePasswordRequest $request)
-    {
-        $user = \Auth::user();
-
-        $user->update([
-            'password' => Hash::make($request->input('password')),
-        ]);
-
-        return response(new UserResource($user), 201);
-    }
 }
