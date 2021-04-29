@@ -66,3 +66,12 @@ Route::group([
         Route::post('links', 'LinkController@store');
     });
 });
+
+// Checkout routes
+
+Route::group([
+    'prefix' => 'checkout',
+    'namespace' => 'Checkout'
+], function () {
+    Route::get('links/{code}', 'LinkController@show');
+});

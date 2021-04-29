@@ -17,17 +17,16 @@ class LinkController extends Controller
             'user_id' => $request->user()->id,
             'code' => Str::random(6),
         ]);
+
+        $products = $request->input('products');
         
-        if($request->input('products') !== null)
-        {
-            foreach($request->input('products') as $product_id)
+            foreach($products as $product_id)
             {
                 LinkProduct::create([
                 'link_id' => $link->id,
                 'product_id' => $product_id,
                 ]);
             }
-        }
         
 
         return new LinkResource($link);
