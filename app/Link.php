@@ -38,4 +38,9 @@ class Link extends Model
     {
         return $this->belongsToMany(Product::class, LinkProduct::class);
     }
+
+    // public function code()
+    // {
+    //     return $this->belongsTo();
+    // }
 }

@@ -10,6 +10,8 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Http\Requests\UpdateInfoRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Resources\UserResource;
+use App\UserRole;
+
 class UserController
 {
   public function index() {

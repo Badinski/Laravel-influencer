@@ -74,4 +74,5 @@ Route::group([
     'namespace' => 'Checkout'
 ], function () {
     Route::get('links/{code}', 'LinkController@show');
+    Route::post('orders', 'OrderController@store');
 });
